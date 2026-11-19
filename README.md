@@ -55,7 +55,7 @@ Student registration and sign-in use Supabase Auth when configured. Legacy bcryp
 
 - React 19 and TypeScript
 - Vite 8 for development and production builds
-- Tailwind CSS 4 via `@tailwindcss/vite`, with the product styling in `src/index.css`
+- Tailwind CSS 4 via `@tailwindcss/vite`, with the product styling in `frontend/src/index.css`
 - Express 5 API, MySQL (`mysql2`), and Supabase Auth
 - Manrope and DM Mono fonts loaded from Google Fonts
 - pnpm for package management
@@ -68,15 +68,15 @@ These screenshots were captured from the running frontend with Playwright and he
 
 | Public homepage | Student workspace |
 | --- | --- |
-| ![ExamSpark public homepage](screenshots/home.png) | ![Student dashboard with featured examination and sample results](screenshots/student-workspace.png) |
+| ![ExamSpark public homepage](frontend/screenshots/home.png) | ![Student dashboard with featured examination and sample results](frontend/screenshots/student-workspace.png) |
 
 | Examination attempt | Teacher workspace |
 | --- | --- |
-| ![Student multiple-choice attempt with question map and countdown](screenshots/exam-attempt.png) | ![Teacher dashboard with sample examination metrics](screenshots/teacher-workspace.png) |
+| ![Student multiple-choice attempt with question map and countdown](frontend/screenshots/exam-attempt.png) | ![Teacher dashboard with sample examination metrics](frontend/screenshots/teacher-workspace.png) |
 
 | Administrator user management |
 | --- |
-| ![Administrator user management with sample users](screenshots/admin-users.png) |
+| ![Administrator user management with sample users](frontend/screenshots/admin-users.png) |
 
 ## Prerequisites
 
@@ -94,7 +94,7 @@ Add `http://localhost:8443/?auth=callback` as an allowed redirect URL in Supabas
 ```powershell
 Copy-Item .env.example .env
 pnpm install --frozen-lockfile
-mysql -u root -p < server/schema.sql
+mysql -u root -p < backend/schema.sql
 ```
 
 Start `pnpm server:dev` and `pnpm dev` in separate terminals. Vite uses port `8443` and proxies `/api` requests to the Express API on port `3001`. Configure a random `JWT_SECRET` of at least 32 characters. If Supabase email confirmation is on, confirm your email before signing in.
@@ -123,7 +123,7 @@ There is no dedicated automated test script or frontend test framework in the pr
 
 ## Application routes
 
-Routing is hash-based and implemented in `src/App.tsx`. Route fragments use the form `/#route` (for example, `/#student`). The homepage is the root URL without a hash.
+Routing is hash-based and implemented in `frontend/src/App.tsx`. Route fragments use the form `/#route` (for example, `/#student`). The homepage is the root URL without a hash.
 
 | Area | Route |
 | --- | --- |
@@ -152,41 +152,36 @@ Routing is hash-based and implemented in `src/App.tsx`. Route fragments use the 
 
 ```text
 .
-├── .figma/make/           # Figma Make setup, preview, and deployment helpers
-├── public/
-│   └── favicon.png        # Static favicon
-├── screenshots/           # Playwright captures used in this README
-├── server/
-│   ├── auth.js            # Supabase/local authentication and session routes
-│   ├── routes.js          # Exam, attempt, assignment, and analytics API
-│   └── schema.sql         # MySQL schema
-├── src/
-│   ├── components/        # Shared UI, workspace shell, dialog focus behavior
-│   ├── pages/             # Public, student, teacher, and admin page modules
-│   ├── App.tsx            # Hash route map
-│   ├── data.ts            # Sample exams, questions, and users
-│   ├── index.css          # Theme, components, and responsive styles
-│   ├── main.tsx           # React entry point
-│   ├── state.ts           # Demo state and authenticated display profile
-│   └── supabase.ts        # Supabase client and API session exchange
-├── FRONTEND_INTEGRATION_GUIDE.md
-├── package.json
-├── pnpm-lock.yaml
-├── tsconfig.json
-└── vite.config.ts
+├── backend/
+│   ├── src/               # Express API, auth, database, and admin bootstrap
+│   ├── schema.sql         # MySQL schema
+│   └── package.json       # Backend-only runtime dependencies and scripts
+├── frontend/
+│   ├── .figma/make/       # Figma Make setup and preview helpers
+│   ├── public/            # Static assets
+│   ├── screenshots/       # README preview images
+│   ├── src/               # React pages, components, styles, and demo data
+│   ├── index.html          # Vite document shell
+│   ├── package.json       # React, Vite, and frontend tooling modules
+│   ├── tsconfig.json
+│   └── vite.config.ts
+├── .env.example           # Shared local backend and frontend configuration
+├── package.json           # Root workspace scripts
+├── pnpm-lock.yaml         # Shared dependency lockfile
+└── pnpm-workspace.yaml    # Frontend/backend workspace definition
 ```
 
 ## Architecture and demo data
 
-`src/App.tsx` maps the supported hash routes to feature page components. Shared controls and route types are in `src/components/ui.tsx`; the role-aware sidebar, page headings, and metric cards are in `src/components/workspace.tsx`. Dialog focus handling is shared through `src/components/useDialogFocus.ts`.
+`frontend/src/App.tsx` maps the supported hash routes to feature page components. Shared controls and route types are in `frontend/src/components/ui.tsx`; the role-aware sidebar, page headings, and metric cards are in `frontend/src/components/workspace.tsx`.
 
-Sample class and analytics records are defined in `src/data.ts`; browser-local demo exams and questions are managed in `src/demoData.ts`. The selected exam and latest demo submission live in `src/state.ts` for the current page session. The demo user marker is cached locally; passwords and provider tokens are not stored there.
+Sample class and analytics records are defined in `frontend/src/data.ts`; browser-local demo exams and questions are managed in `frontend/src/demoData.ts`. Backend routes, database access, and authentication live independently under `backend/src/`. Both packages use the root pnpm workspace and lockfile, while their dependencies are declared in their own `package.json` files.
 
 ## Current limitations and backend status
 
 Supabase Auth manages Supabase passwords. The application database stores account identity and role data; `password_hash` is for legacy local accounts and contains bcrypt hashes only. The schema contains no real user passwords, access tokens, OAuth client secrets, or API keys.
 
-- [`server/schema.sql`](server/schema.sql) creates the database and user, student profile, exam, question, attempt, monitoring event, assignment, and study-resource tables.
+- [`backend/schema.sql`](backend/schema.sql) creates the database and user, student profile, exam, question, attempt, monitoring event, assignment, and study-resource tables.
 - New student registration is open. Teacher and administrator accounts must be provisioned in the `users` table with the correct role before they can sign in.
 - Google/GitHub sign-in requires those providers to be enabled and configured in Supabase. AI tools require `AI_API_KEY`.
 - The attempt countdown and tab-change notice run in the browser and are not security controls.
@@ -199,11 +194,11 @@ The API health check is at `http://localhost:3001/api/health`. A degraded respon
 
 ## Development and contribution notes
 
-- Keep route additions in `src/App.tsx` and feature UI in the corresponding module under `src/pages/`.
-- Prefer the shared components in `src/components/` for consistent controls and workspace layout.
-- Preserve the current visual system and responsive rules in `src/index.css` when extending the UI.
+- Keep route additions in `frontend/src/App.tsx` and feature UI in the corresponding module under `frontend/src/pages/`.
+- Prefer the shared components in `frontend/src/components/` for consistent controls and workspace layout.
+- Preserve the current visual system and responsive rules in `frontend/src/index.css` when extending the UI.
 - Label mock interactions accurately; browser-local demo changes are not persisted to a server or shared with other users.
 - Before handing off code changes, run `pnpm run typecheck` and `pnpm run build`, and manually verify affected routes and screen sizes.
-- Keep the Figma Make helpers under `.figma/make/` and the Vite configuration if that workflow is still in use.
+- Keep the Figma Make helpers under `frontend/.figma/make/` and the Vite configuration if that workflow is still in use.
 
 For source organization, demo boundaries, and detailed backend handoff guidance, see the [Frontend Integration Guide](FRONTEND_INTEGRATION_GUIDE.md).

@@ -8,7 +8,7 @@ ExamSpark is a role-based examination platform with a React frontend, Express AP
 
 - React 19 and TypeScript
 - Vite 8 with the React plugin
-- Tailwind CSS 4 through `@tailwindcss/vite`; the product styles are primarily in `src/index.css`
+- Tailwind CSS 4 through `@tailwindcss/vite`; the product styles are primarily in `frontend/src/index.css`
 - Express 5 API, MySQL (`mysql2`), and Supabase Auth (`@supabase/supabase-js`)
 - pnpm, pinned with Node.js 22 and pnpm 10.34.3 in `.mise.toml`
 
@@ -16,10 +16,10 @@ Copy `.env.example` to `.env`. Configure MySQL, a random `JWT_SECRET` of at leas
 
 ```sh
 pnpm install --frozen-lockfile
-mysql -u root -p < server/schema.sql
+mysql -u root -p < backend/schema.sql
 ```
 
-Start `pnpm server:dev` and `pnpm dev` in separate terminals. Vite serves on port 8443 and proxies `/api` to port 3001. Student registration requires a reachable MySQL database. Teacher and administrator users must be provisioned in the `users` table before sign-in.
+Run `pnpm install --frozen-lockfile` once from the repository root. Start `pnpm server:dev` and `pnpm dev` from the root in separate terminals, or run the corresponding package scripts inside `backend/` and `frontend/`. Vite serves on port 8443 and proxies `/api` to port 3001. Student registration requires a reachable MySQL database. Teacher and administrator users must be provisioned in the `users` table before sign-in.
 
 Useful checks and preview commands:
 
@@ -29,27 +29,26 @@ pnpm run build
 pnpm preview
 ```
 
-The development server uses port 8443 by default. `PORT` can override it. `vite.config.ts` also reads `.figma/make/site.json` and contains Figma preview/build plugins; keep `.figma/make` and the Vite configuration when maintaining that workflow.
+The development server uses port 8443 by default. `PORT` can override it. `frontend/vite.config.ts` reads `frontend/.figma/make/site.json` and contains Figma preview/build plugins; keep these files together when maintaining that workflow.
 
 ## Source layout
 
-- `index.html` is the Vite document shell.
-- `src/main.tsx` mounts React and imports the global stylesheet.
-- `src/App.tsx` owns the 16-route hash router and maps routes to page components.
-- `src/components/ui.tsx` contains shared `Button`, `Icon`, `Logo`, route/role types, and hash navigation.
-- `src/components/workspace.tsx` contains role navigation, the shared `Shell`, `PageTitle`, `Metric`, and the role menu definitions.
-- `src/components/useDialogFocus.ts` gives modal dialogs and drawers initial focus, traps Tab within the open dialog, handles Escape when allowed, and restores focus on close.
-- `src/pages/Marketing.tsx` and `src/pages/Auth.tsx` contain public screens and Supabase/legacy sign-in flows.
-- `src/pages/Student.tsx`, `Attempt.tsx`, and `Results.tsx` contain the student dashboard/catalogue/preparation, attempt, and result experiences.
-- `src/pages/Teacher.tsx` contains exam management, question bank, and analytics views.
-- `src/pages/Admin.tsx` contains admin overview, user management, oversight, and settings views.
-- `src/data.ts` is the typed source for sample exams, questions, and users.
-- `src/state.ts` stores the selected exam and latest submission in memory, and the signed-in display name in local storage.
-- `src/supabase.ts` configures the public Supabase client and exchanges validated Supabase sessions with the API.
-- `server/auth.js` verifies Supabase sessions, checks MySQL roles, handles legacy bcrypt accounts, and issues HTTP-only session cookies.
-- `server/schema.sql` defines MySQL account, student profile, exam, question, attempt, assignment, and study-resource tables.
-- `src/index.css` holds the visual system, responsive rules, and component styles.
-- `public/` contains static assets such as the favicon.
+- `frontend/` contains the independent React/Vite app, its assets, environment-facing Supabase client, and frontend dependencies.
+- `frontend/src/main.tsx` mounts React and imports the global stylesheet.
+- `frontend/src/App.tsx` owns the hash router and maps routes to page components.
+- `frontend/src/components/` contains shared controls, workspace layout, and dialog behavior.
+- `frontend/src/pages/` contains the public, student, teacher, and admin screens.
+- `frontend/src/data.ts` and `frontend/src/demoData.ts` contain sample and browser-local demo data.
+- `frontend/src/state.ts` stores the current demo attempt and user profile state.
+- `frontend/src/supabase.ts` configures the public Supabase client and exchanges validated sessions with the API.
+- `frontend/src/index.css` holds the visual system, responsive rules, and component styles.
+- `frontend/public/` contains static assets such as the favicon.
+- `backend/` contains the independent Express API and its runtime dependencies.
+- `backend/src/auth.js` verifies Supabase sessions, checks MySQL roles, handles legacy bcrypt accounts, and issues HTTP-only session cookies.
+- `backend/src/routes.js` implements the exam, attempt, assignment, and analytics endpoints.
+- `backend/src/db.js` configures the MySQL connection pool.
+- `backend/schema.sql` defines MySQL account, student profile, exam, question, attempt, assignment, and study-resource tables.
+- Root `package.json`, `pnpm-workspace.yaml`, and `pnpm-lock.yaml` orchestrate and lock both packages.
 
 ## Routes and modules
 
@@ -66,7 +65,7 @@ The root URL without a hash opens the public homepage; a Supabase OAuth callback
 
 ## Data and demo behavior
 
-`src/data.ts` exports sample class and analytics records. `src/demoData.ts` seeds browser-local exams and questions for demo users. The sign-in screen can enter the student demo as Rudrakshi Sharma or the teacher demo as Dr. Elias Ford without a password or account creation. Demo teachers can create exams, add questions, and publish them; demo students can take those exams and see browser-calculated results. Demo assignments also share four sample daily tasks through browser local storage; completion updates a progress report but does not grade submitted work. These demo records are not sent to or shared through the API.
+`frontend/src/data.ts` exports sample class and analytics records. `frontend/src/demoData.ts` seeds browser-local exams and questions for demo users. The sign-in screen can enter the student demo as Rudrakshi Sharma or the teacher demo as Dr. Elias Ford without a password or account creation. Demo teachers can create exams, add questions, and publish them; demo students can take those exams and see browser-calculated results. Demo assignments also share four sample daily tasks through browser local storage; completion updates a progress report but does not grade submitted work. These demo records are not sent to or shared through the API.
 
 Configured accounts continue to use the API for exam/question records, attempts, and server-side grading. Demo records remain local to the current browser. The countdown and browser tab-switch warning are demonstrations, not exam security controls.
 
@@ -74,7 +73,7 @@ There is no frontend test framework installed in this project.
 
 ## Backend integration points
 
-The Express routes are defined in `server/auth.js` and `server/routes.js`. `src/api.ts` is the frontend API helper. The API health check is `GET /api/health`.
+The Express routes are defined in `backend/src/auth.js` and `backend/src/routes.js`. `frontend/src/api.ts` is the frontend API helper. The API health check is `GET /api/health`.
 
 The backend should own:
 
@@ -84,7 +83,7 @@ The backend should own:
 - Grading, published results, analytics aggregation, and exports.
 - File/import handling and admin actions.
 
-Never store plaintext passwords, Supabase access tokens, provider secrets, or service-role keys in `server/schema.sql`. Supabase Auth stores Supabase credentials; MySQL stores account/profile and exam records. Existing teacher/admin users must be provisioned with the correct role in MySQL before they can exchange a Supabase session.
+Never store plaintext passwords, Supabase access tokens, provider secrets, or service-role keys in `backend/schema.sql`. Supabase Auth stores Supabase credentials; MySQL stores account/profile and exam records. Existing teacher/admin users must be provisioned with the correct role in MySQL before they can exchange a Supabase session.
 
 ## Current assumptions and limitations
 
@@ -98,7 +97,7 @@ Never store plaintext passwords, Supabase access tokens, provider secrets, or se
 ## Continuing development
 
 1. Use the feature-specific page module and shared components rather than adding another screen to a single application file.
-2. Keep shared presentation and keyboard behavior in `src/components`; keep domain sample data in `src/data.ts` until service contracts are agreed.
-3. Preserve the current ExamSpark visual identity in `src/index.css`. Verify any layout changes at desktop, tablet, and narrow mobile widths.
+2. Keep shared presentation and keyboard behavior in `frontend/src/components`; keep domain sample data in `frontend/src/data.ts` until service contracts are agreed.
+3. Preserve the current ExamSpark visual identity in `frontend/src/index.css`. Verify any layout changes at desktop, tablet, and narrow mobile widths.
 4. Add backend service contracts and tests when the backend team provides approved API shapes. Do not infer endpoint URLs from the mock UI.
 5. Run `pnpm run typecheck` and `pnpm run build` before handing off frontend changes.

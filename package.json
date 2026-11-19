@@ -1,17 +1,16 @@
 {
-  "name": "examspark-frontend",
+  "name": "examspark",
   "private": true,
-  "version": "1.0.0",
-  "type": "module",
+  "packageManager": "pnpm@10.34.3",
   "scripts": {
-    "dev": "vite",
-    "server": "node server/index.js",
-    "server:dev": "node --watch server/index.js",
-    "bootstrap:admin": "node server/bootstrap-admin.js",
-    "build": "vite build",
-    "preview": "vite preview",
-    "format": "oxfmt",
-    "typecheck": "tsc --noEmit"
+    "dev": "pnpm --filter @examspark/frontend run dev",
+    "build": "pnpm --filter @examspark/frontend run build",
+    "preview": "pnpm --filter @examspark/frontend run preview",
+    "typecheck": "pnpm --filter @examspark/frontend run typecheck",
+    "format": "pnpm --filter @examspark/frontend run format",
+    "server": "pnpm --filter @examspark/backend run server",
+    "server:dev": "pnpm --filter @examspark/backend run server:dev",
+    "bootstrap:admin": "pnpm --filter @examspark/backend run bootstrap:admin"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",

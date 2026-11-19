@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./env.js";
 import bcrypt from "bcryptjs";
 import { pool, requirePool } from "./db.js";
 
