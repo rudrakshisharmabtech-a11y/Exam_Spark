@@ -1,0 +1,10 @@
+{
+  "description": "A unified examination platform for students, teachers, and administrators to prepare for, manage, take, and review exams.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
