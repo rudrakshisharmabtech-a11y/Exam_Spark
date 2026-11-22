@@ -1,0 +1,18 @@
+{
+  "name": "examspark-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ExamSpark Examination and Smart Learning Platform (Frontend & Backend)",
+  "scripts": {
+    "start": "node backend/index.js",
+    "server": "npm --prefix backend run dev",
+    "client": "npm --prefix frontend run dev",
+    "dev": "node start-dev.js",
+    "build": "npm --prefix frontend run build",
+    "init:db": "node backend/init-db.js",
+    "view:users": "node backend/view-users.js"
+  },
+  "keywords": ["exam", "education", "ai-summarizer", "pdf-chat", "railway", "google-auth"],
+  "author": "",
+  "license": "ISC"
+}
